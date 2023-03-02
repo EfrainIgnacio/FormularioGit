@@ -1,17 +1,28 @@
-import { useState } from "react"
+import {  useState,useEffect } from "react"
 import MensajeError from "./MensajeError"
 
-function Formulario({paciente,setPaciente}) {
-
+function Formulario({paciente,setPaciente,pacienteEditar,setpacienteEditar}) {
 
     const [nombre, setNombre] = useState('')
     const [apellido, setApellido] = useState('')
     const [email, setEmail] = useState('')
     const [fecha, setFecha] = useState('')
 
-
     const [error, setError] = useState(false)
-
+    
+    
+    useEffect(() => {      
+        
+        if( Object.keys(pacienteEditar).length > 0 ){
+            setNombre(pacienteEditar.nombre)
+            setApellido(pacienteEditar.apellido)
+            setEmail(pacienteEditar.email)
+            setFecha(pacienteEditar.fecha)
+        }
+    }, [ pacienteEditar ])
+    
+    
+    //Funcion para generar un ID
     const generarId=()=>{
         const random=Math.random().toString(36).substring(2)
         const fech=Date.now().toString(36)
@@ -21,9 +32,8 @@ function Formulario({paciente,setPaciente}) {
 
     const handleSubmit=(evento)=>{
         evento.preventDefault();
-        
 
-        //Validacino de formulario
+        //Validacion de formulario
         if ([nombre,apellido,email,fecha].includes('')) {
 
             setError(true)
@@ -38,9 +48,27 @@ function Formulario({paciente,setPaciente}) {
             apellido:apellido,
             email,
             fecha,
-            id:generarId()
         }
-        setPaciente([...paciente,objetoPaciente])
+
+
+        if(pacienteEditar.id){
+            //Editar Registro
+            objetoPaciente.id=pacienteEditar.id
+
+            const pacienteActualizado= paciente.map(pacienteState=>pacienteState.id === pacienteEditar.id?
+                objetoPaciente:pacienteState
+                )
+                setPaciente(pacienteActualizado)
+        }
+        else{
+            //Agregar Registro
+            objetoPaciente.id=generarId()
+            setPaciente([...paciente,objetoPaciente])
+
+            //Limpiar el objeto del state 
+            setpacienteEditar({})
+        }
+
 
         //Limiar formulario
         setNombre("")
@@ -69,6 +97,7 @@ function Formulario({paciente,setPaciente}) {
                         placeholder="Nombre del usuario"
                         className="border-2 w-full p-2 mt-2 placeholder-gray-700 rounded-lg"
                         value={nombre}
+                        
                         //Nos permite escribir en el input
                         onChange={(evento)=>setNombre(evento.target.value)}
                     />
@@ -112,7 +141,7 @@ function Formulario({paciente,setPaciente}) {
                 <input 
                     type="submit"
                     className="bg-indigo-500 w-full text-white p-2 rounded-lg hover:bg-indigo-700 hover:cursor-pointer transition-all"
-                    value="Agregar"
+                    value={pacienteEditar.id?"Editar Usuario":"Agregar usuario"}
                 />
             </form>
         </div>
